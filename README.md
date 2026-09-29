@@ -42,6 +42,10 @@ Accept: application/vnd.sdmx.data+csv;version=2.0.0
 - Periods come as `2026-M08`; the script converts them to `2026-08`. One row per country and month, no duplicates.
 - As of 2026-09-29: 191 country/aggregate codes, newest period 2026-M08.
 
+## Fonts
+
+The pages self-host Barlow and Barlow Condensed (latin and latin-ext woff2 from Google Fonts, SIL Open Font License 1.1, text in `site/fonts/OFL.txt`), so visitors do not contact Google. System fonts are the fallback.
+
 ## Data source and IMF terms
 
 Source: International Monetary Fund, Consumer Price Index (CPI) dataset, https://data.imf.org/. The site and the app name this source with a link.
