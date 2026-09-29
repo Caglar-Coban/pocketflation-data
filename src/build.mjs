@@ -7,6 +7,9 @@ const iso3to2 = JSON.parse(await readFile(new URL('./iso3to2.json', import.meta.
 const rows = await fetchImfRows();
 const countries = transform(rows, iso3to2);
 
+const unmapped = [...new Set(rows.map((r) => r.iso3))].filter((c) => !iso3to2[c]).sort();
+if (unmapped.length > 0) console.warn(`Unmapped IMF codes (skipped): ${unmapped.join(' ')}`);
+
 const codes = Object.keys(countries).sort();
 if (codes.length < 100) throw new Error(`Only ${codes.length} countries; refusing to write cpi.json`);
 

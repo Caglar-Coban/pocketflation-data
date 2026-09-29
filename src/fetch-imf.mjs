@@ -36,6 +36,7 @@ function splitCsvLine(line) {
 /** Parses the IMF SDMX-CSV 2.0 body into { iso3, period, value } rows. */
 export function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) throw new Error('IMF CSV empty');
   const header = splitCsvLine(lines[0]);
   const col = (name) => {
     const i = header.indexOf(name);

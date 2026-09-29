@@ -31,6 +31,7 @@ jobs:
           if [ -n "$(git status --porcelain site/cpi.json)" ]; then
             git add site/cpi.json
             git commit -m "data: update cpi.json"
+            git pull --rebase
             git push
           fi
       - uses: actions/configure-pages@v5

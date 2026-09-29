@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { transform } from './transform.mjs';
 
 const map = { TUR: 'TR', USA: 'US' };
@@ -22,16 +23,12 @@ test('13 consecutive months, 100 to 150, gives yoy 0.5 at the latest period', ()
 });
 
 test('falls back to the latest period that has a t-12 when the exact one is missing', () => {
-  // 2025-06 .. 2026-07 present, 2026-08 present but 2025-08 missing.
-  const rows = series('TUR', '2025-06', [100, 100, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 132, 150]).filter(
-    (r) => r.period !== '2025-08',
-  );
-  // 2026-08 has no 2025-08; 2026-07 has 2025-07 (100) -> 150/100... check values
-  const out = transform(rows, map);
-  assert.equal(out.TR.period, '2026-07');
-  const jul25 = rows.find((r) => r.period === '2025-07').value;
-  const jul26 = rows.find((r) => r.period === '2026-07').value;
-  assert.equal(out.TR.yoy, Math.round((jul26 / jul25 - 1) * 10000) / 10000);
+  // 2025-06 .. 2026-08 (15 months), with 2025-08 removed so 2026-08 has no t-12.
+  const values = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 140, 150, 160];
+  const rows = series('TUR', '2025-06', values).filter((r) => r.period !== '2025-08');
+  assert.equal(rows.at(-1).period, '2026-08');
+  // 2026-07 is the latest period whose t-12 (2025-07, value 100) exists; 2026-07 value is 150.
+  assert.deepEqual(transform(rows, map).TR, { period: '2026-07', yoy: 0.5 });
 });
 
 test('a country whose latest valid yoy is more than 18 months behind the dataset newest is excluded', () => {
@@ -42,12 +39,18 @@ test('a country whose latest valid yoy is more than 18 months behind the dataset
   assert.ok(out.US);
 });
 
-test('a country exactly 18 months behind is kept', () => {
-  const edge = series('TUR', '2025-02', Array(13).fill(100)); // ends 2026-02
-  const fresh = series('USA', '2025-08', Array(13).fill(100)); // ends 2026-08 (6 months apart)
-  const older = series('TUR', '2023-08', Array(13).fill(100)); // ends 2024-08, 24 months behind
-  assert.ok(transform([...edge, ...fresh], map).TR);
-  assert.equal(transform([...older, ...fresh], map).TR, undefined);
+test('the 18-month boundary is inclusive: 18 behind is kept, 19 behind is excluded', () => {
+  const fresh = series('USA', '2025-08', Array(13).fill(100)); // newest 2026-08
+  const at18 = series('TUR', '2024-02', Array(13).fill(100)); // ends 2025-02, 18 months behind
+  const at19 = series('TUR', '2024-01', Array(13).fill(100)); // ends 2025-01, 19 months behind
+  assert.deepEqual(transform([...at18, ...fresh], map).TR, { period: '2025-02', yoy: 0 });
+  assert.equal(transform([...at19, ...fresh], map).TR, undefined);
+});
+
+test('IMF-specific codes KOS and WBG map to XK and PS', () => {
+  const iso3to2 = JSON.parse(readFileSync(new URL('./iso3to2.json', import.meta.url), 'utf8'));
+  const rows = [...series('KOS', '2025-08', Array(13).fill(100)), ...series('WBG', '2025-08', Array(13).fill(100))];
+  assert.deepEqual(Object.keys(transform(rows, iso3to2)).sort(), ['PS', 'XK']);
 });
 
 test('unknown ISO3 codes are skipped', () => {

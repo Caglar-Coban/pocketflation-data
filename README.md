@@ -28,7 +28,7 @@ node src/build.mjs   # fetch from IMF and write site/cpi.json (npm run build)
   "countries": { "TR": { "period": "2026-08", "yoy": 0.3151 } } }
 ```
 
-`yoy` is a fraction rounded to 4 decimals. For each country the latest period `t` that also has `t-12` is used. Countries whose latest usable period is more than 18 months older than the newest period in the dataset are dropped, as are IMF codes that are not ISO 3166 countries (regional aggregates). ISO3 codes from the IMF are mapped to ISO2 by `src/iso3to2.json` (includes `XKX` to `XK` for Kosovo).
+`yoy` is a fraction rounded to 4 decimals. For each country the latest period `t` that also has `t-12` is used. Countries whose latest usable period is more than 18 months older than the newest period in the dataset are dropped, as are IMF codes that are not ISO 3166 countries (regional aggregates). ISO3 codes from the IMF are mapped to ISO2 by `src/iso3to2.json` (includes the IMF-specific codes `KOS` to `XK` for Kosovo and `WBG` to `PS` for West Bank and Gaza, plus `XKX` to `XK`). `build.mjs` logs any IMF code that is not in the map, so a code change shows up in the Actions log.
 
 ## IMF query (verified with curl on 2026-09-29)
 

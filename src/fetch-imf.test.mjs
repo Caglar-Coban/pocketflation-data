@@ -10,7 +10,7 @@ test('normalizePeriod converts IMF monthly periods and rejects others', () => {
 
 test('parseCsv reads country, period and value and skips empty observations', () => {
   const csv = [
-    'STRUCTURE,STRUCTURE_ID,ACTION,COUNTRY,INDEX_TYPE,COICOP_1999,TYPE_OF_TRANSFORMATION,FREQUENCY,TIME_PERIOD,OBS_VALUE',
+    'STRUCTURE[;],STRUCTURE_ID,ACTION,COUNTRY,INDEX_TYPE,COICOP_1999,TYPE_OF_TRANSFORMATION,FREQUENCY,TIME_PERIOD,OBS_VALUE',
     'dataflow,IMF.STA:CPI(5.0.0),R,TUR,CPI,_T,IX,M,2026-M08,4321.5',
     'dataflow,IMF.STA:CPI(5.0.0),R,TUR,CPI,_T,IX,M,2026-M09,',
   ].join('\n');

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T16:28:12.568Z",
+  "generatedAt": "2026-09-29T16:33:20.694Z",
   "source": {
     "name": "IMF",
     "dataset": "Consumer Price Index (CPI)",
@@ -523,6 +523,10 @@
       "period": "2026-08",
       "yoy": 0.0361
     },
+    "PS": {
+      "period": "2026-05",
+      "yoy": -0.3696
+    },
     "PT": {
       "period": "2026-07",
       "yoy": 0.0304
@@ -682,6 +686,10 @@
     "WS": {
       "period": "2026-07",
       "yoy": 0.0311
+    },
+    "XK": {
+      "period": "2026-03",
+      "yoy": 0.0666
     },
     "ZA": {
       "period": "2026-07",
