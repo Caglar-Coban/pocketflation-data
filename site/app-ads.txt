@@ -1,0 +1,7 @@
+# app-ads.txt for Pocketflation (com.caglarcoban.pocketflation)
+# PLACEHOLDER: replace pub-0000000000000000 with your AdMob publisher ID
+# (AdMob > Apps > View all apps > app-ads.txt > How to set up app-ads.txt shows the exact line).
+# AdMob only reads this file at the ROOT of the developer website's host:
+# https://caglar-coban.github.io/app-ads.txt. This copy under /pocketflation-data/ is the
+# source; copy it to the Caglar-Coban/caglar-coban.github.io repo (see README.md, "app-ads.txt").
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

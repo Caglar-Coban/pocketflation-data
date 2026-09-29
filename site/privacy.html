@@ -16,7 +16,7 @@
   <p>Pocketflation is an Android app that shows you how prices changed for the things you buy, next to your country's official annual inflation. This page explains what the app does with your data. Short version: your personal data stays on your phone.</p>
 
   <h2>What stays on your phone</h2>
-  <p>Your basket, the prices you enter and your income are stored on your device. We, the developer, never receive them and cannot see them. There are no accounts and no analytics.</p>
+  <p>Your basket, the prices you enter and your income are stored on your device. We, the developer, never receive them and cannot see them. There are no accounts, and the app has no analytics of its own. Google's ads SDK collects some data on its own; see "Rewarded ads" below.</p>
   <ul>
     <li>Reminders are local notifications scheduled on your phone. No server is involved.</li>
     <li>Share images, salary-report PDFs and data exports are files created on your phone. They leave it only if you choose to share or save them somewhere else. A data export holds your basket, prices, income and settings, so keep it somewhere you trust.</li>
@@ -28,7 +28,7 @@
   <ul>
     <li><strong>Official statistics file.</strong> About once a day the app downloads one public file, <a href="cpi.json">cpi.json</a>, from this site. It contains official inflation rates by country and nothing about you. Like any web request, it exposes your IP address to the hosting provider (GitHub Pages).</li>
     <li><strong>Purchases.</strong> Premium purchases go through Google Play Billing and RevenueCat. The app contacts RevenueCat when it starts and when you return to it, to check whether you have Premium, and when you open the Premium plans, buy or restore a purchase. RevenueCat identifies the app on your phone only by an anonymous app user ID it creates; it is not linked to your name or email. Google Play and RevenueCat receive the purchase information they need to process, check and restore your purchase, under their own privacy policies.</li>
-    <li><strong>Rewarded ads.</strong> Rewarded ads are served by Google AdMob. In the European Economic Area and the United Kingdom, the app asks for your consent first. AdMob may use the advertising ID of your device. You can reset or delete the advertising ID in your Android settings.</li>
+    <li><strong>Rewarded ads.</strong> Rewarded ads are served by Google AdMob, and an ad plays only when you tap to watch one. After first-run setup, each time the app opens it checks with Google's consent tool whether your consent is needed. In the European Economic Area, the United Kingdom and Switzerland, the app asks for your consent first. Where ads are allowed, the app then starts Google's ads SDK, even if you never watch an ad. The SDK may collect your device's IP address (which can be used to estimate your general location), its advertising ID and app set ID, interactions such as app launches, taps and ad views, and diagnostic information about how the app and the SDK perform. Google uses this data for advertising, analytics and fraud prevention, under <a href="https://policies.google.com/technologies/partner-sites">its own policies</a>. You can reset or delete the advertising ID in your Android settings. In the EEA, the UK and Switzerland you can change your consent at any time in the app under Settings, Privacy choices.</li>
   </ul>
 
   <h2>Official data source</h2>
@@ -47,7 +47,7 @@
   <p>Pocketflation, aldığın şeylerin fiyatının nasıl değiştiğini ülkenin resmi yıllık enflasyonunun yanında gösteren bir Android uygulamasıdır. Bu sayfa uygulamanın verilerinle ne yaptığını açıklar. Kısaca: kişisel verilerin telefonunda kalır.</p>
 
   <h2>Telefonunda kalanlar</h2>
-  <p>Sepetin, girdiğin fiyatlar ve gelirin yalnızca cihazında saklanır. Bunlar bize, yani geliştiriciye, hiç ulaşmaz ve bunları göremeyiz. Hesap yoktur, kullanım analizi (analytics) yapılmaz.</p>
+  <p>Sepetin, girdiğin fiyatlar ve gelirin yalnızca cihazında saklanır. Bunlar bize, yani geliştiriciye, hiç ulaşmaz ve bunları göremeyiz. Hesap yoktur ve uygulamanın kendine ait bir kullanım analizi (analytics) yoktur. Google'ın reklam SDK'sı kendi başına bazı veriler toplar; ayrıntılar aşağıda "Ödüllü reklamlar" başlığında.</p>
   <ul>
     <li>Hatırlatıcılar telefonunda planlanan yerel bildirimlerdir. Bu işlem için sunucu kullanılmaz.</li>
     <li>Paylaşım görselleri, maaş raporu PDF'leri ve veri dışa aktarma dosyaları telefonunda oluşturulur. Yalnızca sen paylaşmayı ya da başka bir yere kaydetmeyi seçersen telefondan çıkar. Dışa aktarma dosyasında sepetin, fiyatların, gelirin ve ayarların bulunur; bu yüzden onu güvendiğin bir yerde sakla.</li>
@@ -59,7 +59,7 @@
   <ul>
     <li><strong>Resmi istatistik dosyası.</strong> Uygulama yaklaşık günde bir kez bu siteden herkese açık tek bir dosya, <a href="cpi.json">cpi.json</a>, indirir. Dosyada ülkelere göre resmi enflasyon oranları vardır, senin hakkında hiçbir şey yoktur. Her web isteğinde olduğu gibi IP adresin barındırma sağlayıcısı (GitHub Pages) tarafından görülür.</li>
     <li><strong>Satın alma.</strong> Premium satın alımlar Google Play Billing ve RevenueCat üzerinden yapılır. Uygulama, Premium'unun olup olmadığını kontrol etmek için açıldığında ve uygulamaya geri döndüğünde, ayrıca Premium planlarını açtığında, satın alma yaptığında ya da satın alımlarını geri yüklediğinde RevenueCat'e bağlanır. RevenueCat telefonundaki uygulamayı yalnızca kendi oluşturduğu anonim bir uygulama kullanıcı kimliğiyle tanır; bu kimlik adınla veya e-posta adresinle ilişkilendirilmez. Google Play ve RevenueCat, satın alımını işlemek, kontrol etmek ve geri yüklemek için gereken bilgileri kendi gizlilik politikaları kapsamında alır.</li>
-    <li><strong>Ödüllü reklamlar.</strong> Ödüllü reklamları Google AdMob sunar. Avrupa Ekonomik Alanı ve Birleşik Krallık'ta uygulama önce onayını ister. AdMob cihazının reklam kimliğini kullanabilir. Reklam kimliğini Android ayarlarından sıfırlayabilir veya silebilirsin.</li>
+    <li><strong>Ödüllü reklamlar.</strong> Ödüllü reklamları Google AdMob sunar ve bir reklam yalnızca izlemek için dokunduğunda oynar. İlk kurulumdan sonra uygulama her açıldığında, onayının gerekip gerekmediğini Google'ın onay aracına sorar. Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre'de uygulama önce onayını ister. Reklamlara izin verilen yerlerde uygulama, hiç reklam izlemesen bile Google'ın reklam SDK'sını başlatır. SDK cihazının IP adresini (genel konumunu tahmin etmek için kullanılabilir), reklam kimliğini ve uygulama grubu kimliğini (app set ID), uygulamanın açılması, dokunmalar ve reklam görüntülemeleri gibi etkileşimleri ve uygulamanın ve SDK'nın performansıyla ilgili tanılama bilgilerini toplayabilir. Google bu verileri <a href="https://policies.google.com/technologies/partner-sites">kendi politikaları</a> kapsamında reklam, analiz ve dolandırıcılığı önleme amacıyla kullanır. Reklam kimliğini Android ayarlarından sıfırlayabilir veya silebilirsin. AEA, Birleşik Krallık ve İsviçre'de onay tercihini istediğin zaman uygulamada Ayarlar, Gizlilik tercihleri bölümünden değiştirebilirsin.</li>
   </ul>
 
   <h2>Resmi veri kaynağı</h2>

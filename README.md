@@ -60,3 +60,20 @@ What applies:
 - Content not attributed to the IMF belongs to third parties who must be asked directly.
 - The IMF page says commercial reuse of some IMF material needs permission (copyright@imf.org). Pocketflation has ads and in-app purchases, so confirm on the live terms page that reuse of the CPI dataset in an app is covered, or ask the IMF, before release.
 - Do not imply IMF endorsement. The site and terms state that Pocketflation is not affiliated with the IMF.
+
+## app-ads.txt
+
+`site/app-ads.txt` authorizes Google AdMob to sell the app's rewarded ad inventory. It ships with a **placeholder** publisher ID (`pub-0000000000000000`).
+
+1. In AdMob, open **Apps > View all apps > app-ads.txt > How to set up app-ads.txt** and copy the line. It looks like `google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0`.
+2. Replace the placeholder line in `site/app-ads.txt` with it, commit and push. The workflow deploys it with the rest of `site/` (run it by hand from **Actions > Update CPI data and deploy site > Run workflow** if you don't want to wait for the monthly run).
+3. **AdMob only looks at the root of the developer website's host.** The Play listing's developer website is `https://caglar-coban.github.io/pocketflation-data/`, so the crawler requests `https://caglar-coban.github.io/app-ads.txt`, not the copy under `/pocketflation-data/`. Publish the same file at the root with a GitHub user site:
+   ```bash
+   mkdir caglar-coban.github.io && cd caglar-coban.github.io
+   git init -b main
+   cp ../pocketflation-data/site/app-ads.txt .
+   git add app-ads.txt && git commit -m "Add app-ads.txt"
+   gh repo create caglar-coban.github.io --public --source=. --push
+   ```
+   Then in that repo, **Settings > Pages > Build and deployment > Source: Deploy from a branch**, branch `main`, folder `/ (root)`, **Save**. After a minute, `https://caglar-coban.github.io/app-ads.txt` must show the line. The project site keeps working at `/pocketflation-data/`.
+4. AdMob checks the file after the app is live on Play and linked in AdMob (**Apps > your app > App settings > App store details**). It can take up to 24 hours; the status shows under **Apps > View all apps > app-ads.txt**.
