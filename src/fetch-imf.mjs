@@ -59,7 +59,7 @@ export function parseCsv(text) {
 export async function fetchImfRows(years = 3, now = new Date()) {
   const start = `${now.getUTCFullYear() - years}-01`;
   const url = `${BASE}?${encodeURIComponent('c[TIME_PERIOD]')}=ge:${start}`;
-  const res = await fetch(url, { headers: { Accept: ACCEPT } });
+  const res = await fetch(url, { headers: { Accept: ACCEPT }, signal: AbortSignal.timeout(120_000) });
   if (!res.ok) throw new Error(`IMF API responded ${res.status} for ${url}`);
   const rows = parseCsv(await res.text());
   if (rows.length === 0) throw new Error('IMF API returned no rows');
