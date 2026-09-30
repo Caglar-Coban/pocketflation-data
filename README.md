@@ -69,6 +69,7 @@ What applies:
 2. Replace the placeholder line in `site/app-ads.txt` with it, commit and push. The workflow deploys it with the rest of `site/` (run it by hand from **Actions > Update CPI data and deploy site > Run workflow** if you don't want to wait for the monthly run).
 3. **AdMob only looks at the root of the developer website's host.** The Play listing's developer website is `https://caglar-coban.github.io/pocketflation-data/`, so the crawler requests `https://caglar-coban.github.io/app-ads.txt`, not the copy under `/pocketflation-data/`. Publish the same file at the root with a GitHub user site:
    ```bash
+   cd ..
    mkdir caglar-coban.github.io && cd caglar-coban.github.io
    git init -b main
    cp ../pocketflation-data/site/app-ads.txt .
