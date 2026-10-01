@@ -4,11 +4,12 @@ Public data pipeline and static site for the Pocketflation Android app. The repo
 
 ## What it does
 
-Once a month (and on demand) a GitHub Actions workflow downloads the IMF monthly consumer price index for all countries, computes the latest year-over-year rate per country, writes `site/cpi.json` and deploys `site/` to GitHub Pages. The app downloads `cpi.json` about once a day and bundles a snapshot for offline use.
+Once a month (and on demand) a GitHub Actions workflow downloads the IMF monthly consumer price index for all countries, computes the latest year-over-year rate per country, writes `site/cpi.json`, downloads the monthly index series by category, writes `site/cpi-series.json`, and deploys `site/` to GitHub Pages. The app downloads both files about once a day and bundles a snapshot of each for offline use.
 
 Pages URL (once the repo is pushed as `Caglar-Coban/pocketflation-data` with Pages set to "GitHub Actions"):
 
 - `https://caglar-coban.github.io/pocketflation-data/cpi.json`
+- `https://caglar-coban.github.io/pocketflation-data/cpi-series.json`
 - `https://caglar-coban.github.io/pocketflation-data/privacy.html`
 - `https://caglar-coban.github.io/pocketflation-data/terms.html`
 
@@ -29,6 +30,18 @@ node src/build.mjs   # fetch from IMF and write site/cpi.json (npm run build)
 ```
 
 `yoy` is a fraction rounded to 4 decimals. For each country the latest period `t` that also has `t-12` is used. Countries whose latest usable period is more than 18 months older than the newest period in the dataset are dropped, as are IMF codes that are not ISO 3166 countries (regional aggregates). ISO3 codes from the IMF are mapped to ISO2 by `src/iso3to2.json` (includes the IMF-specific codes `KOS` to `XK` for Kosovo and `WBG` to `PS` for West Bank and Gaza, plus `XKX` to `XK`). `build.mjs` logs any IMF code that is not in the map, so a code change shows up in the Actions log.
+
+## cpi-series.json
+
+```json
+{ "version": 1, "generatedAt": "...", "source": { "name": "IMF", "dataset": "Consumer Price Index (CPI)", "url": "https://data.imf.org/" },
+  "start": "2024-01",
+  "countries": { "DE": { "all": [100.1, 103.2, null], "food": [], "transport": [], "housing": [], "communication": [], "health": [], "personal": [] } } }
+```
+
+Seven monthly index series per country, for the app's automatic tracking: all items (`_T`) and the COICOP divisions CP01 (food), CP07 (transport), CP04 (housing and utilities), CP08 (communication), CP06 (health) and CP12 (miscellaneous). Index `i` of an array is the month `start + i`; a missing month is `null`; trailing nulls are trimmed; values are rounded to 2 decimals. A country needs at least 13 months of the all-items series. The query is the one below with the COICOP code in place of `_T`.
+
+As of 2026-10-01: 175 countries have the all-items series, but only 96 of them carry the category series. The IMF returns rows with an empty `OBS_VALUE` for the national-CPI divisions of the rest (Türkiye, most of the EU, Canada, Japan, India, Brazil, Mexico and others), so those countries are published with `all` alone and the app follows the all-items index for every item there.
 
 ## IMF query (verified with curl on 2026-09-29)
 

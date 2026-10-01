@@ -5,7 +5,7 @@
 //   Accept: application/vnd.sdmx.data+csv;version=2.0.0
 // Dimension order of the key: COUNTRY.INDEX_TYPE.COICOP_1999.TYPE_OF_TRANSFORMATION.FREQUENCY
 
-const BASE = 'https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/CPI/+/*.CPI._T.IX.M';
+const FLOW = 'https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/CPI/+';
 const ACCEPT = 'application/vnd.sdmx.data+csv;version=2.0.0';
 
 /** '2026-M08' -> '2026-08'. Returns null for anything that is not a monthly period. */
@@ -55,13 +55,17 @@ export function parseCsv(text) {
   return rows;
 }
 
-/** @param {number} [years] how many years of history to request (yoy needs 13+ months) */
-export async function fetchImfRows(years = 3, now = new Date()) {
-  const start = `${now.getUTCFullYear() - years}-01`;
-  const url = `${BASE}?${encodeURIComponent('c[TIME_PERIOD]')}=ge:${start}`;
+/** Monthly index rows of one COICOP series (`_T` is all items) for all countries, from `start` (`YYYY-MM`) on. */
+export async function fetchIndexRows(coicop, start) {
+  const url = `${FLOW}/*.CPI.${coicop}.IX.M?${encodeURIComponent('c[TIME_PERIOD]')}=ge:${start}`;
   const res = await fetch(url, { headers: { Accept: ACCEPT }, signal: AbortSignal.timeout(120_000) });
   if (!res.ok) throw new Error(`IMF API responded ${res.status} for ${url}`);
   const rows = parseCsv(await res.text());
-  if (rows.length === 0) throw new Error('IMF API returned no rows');
+  if (rows.length === 0) throw new Error(`IMF API returned no rows for ${coicop}`);
   return rows;
+}
+
+/** @param {number} [years] how many years of history to request (yoy needs 13+ months) */
+export async function fetchImfRows(years = 3, now = new Date()) {
+  return fetchIndexRows('_T', `${now.getUTCFullYear() - years}-01`);
 }

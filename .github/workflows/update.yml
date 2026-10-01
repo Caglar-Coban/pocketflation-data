@@ -25,13 +25,13 @@ jobs:
           node-version: 24
       - run: node --test
       - run: node src/build.mjs
-      - name: Commit updated cpi.json
+      - name: Commit updated data files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain site/cpi.json)" ]; then
-            git add site/cpi.json
-            git commit -m "data: update cpi.json"
+          if [ -n "$(git status --porcelain site/cpi.json site/cpi-series.json)" ]; then
+            git add site/cpi.json site/cpi-series.json
+            git commit -m "data: update cpi files"
             git pull --rebase
             git push
           fi
