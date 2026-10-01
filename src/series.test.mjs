@@ -47,3 +47,11 @@ test('unknown ISO3 codes and unknown series keys are skipped; a series with no v
   assert.deepEqual(Object.keys(out.countries), ['US']);
   assert.deepEqual(Object.keys(out.countries.US), ['all']);
 });
+
+test('a country whose all-items series ends more than 18 months before the newest month is dropped', () => {
+  const fresh = rows('USA', '2024-01', flat(32)); // newest 2026-08
+  const at18 = rows('TUR', '2024-01', flat(14)); // ends 2025-02, 18 months behind
+  const at19 = rows('TUR', '2024-01', flat(13)); // ends 2025-01, 19 months behind
+  assert.deepEqual(Object.keys(buildSeries({ all: [...fresh, ...at18] }, map, '2024-01').countries), ['TR', 'US']);
+  assert.deepEqual(Object.keys(buildSeries({ all: [...fresh, ...at19] }, map, '2024-01').countries), ['US']);
+});

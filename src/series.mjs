@@ -5,6 +5,8 @@ export const SERIES = { all: '_T', food: 'CP01', transport: 'CP07', housing: 'CP
 export const SERIES_START = '2024-01';
 
 const MIN_ALL_MONTHS = 13;
+/** A country whose all-items series ends more than this many months before the newest month is dropped. */
+const MAX_LAG_MONTHS = 18;
 
 function monthIndex(period) {
   const [y, m] = period.split('-').map(Number);
@@ -15,7 +17,8 @@ function monthIndex(period) {
  * Turns the rows of each series into month-aligned arrays per country.
  * `rowsByKey[key]` holds `{ iso3, period, value }` rows; index `i` of an output array is the
  * month `start + i`, a missing month is `null`, and trailing nulls are trimmed. Countries
- * with fewer than 13 months of the all-items series are dropped.
+ * with fewer than 13 months of the all-items series are dropped, as are countries whose
+ * all-items series ends more than 18 months before the newest month in the data.
  *
  * @param {Record<string, Array<{iso3: string, period: string, value: number}>>} rowsByKey
  * @param {Record<string, string>} iso3to2
@@ -34,6 +37,10 @@ export function buildSeries(rowsByKey, iso3to2, start = SERIES_START) {
       (entry[key] ??= [])[i] = Math.round(value * 100) / 100;
     }
   }
+  // The newest month any country has an all-items value for (arrays end at their last value).
+  let newest = 0;
+  for (const entry of Object.values(sparse)) newest = Math.max(newest, (entry.all ?? []).length);
+
   const countries = {};
   for (const iso2 of Object.keys(sparse).sort()) {
     const entry = {};
@@ -41,7 +48,11 @@ export function buildSeries(rowsByKey, iso3to2, start = SERIES_START) {
       const values = sparse[iso2][key];
       if (values) entry[key] = Array.from(values, (v) => v ?? null);
     }
-    if ((entry.all ?? []).filter((v) => v !== null).length >= MIN_ALL_MONTHS) countries[iso2] = entry;
+    const all = entry.all ?? [];
+    if (all.filter((v) => v !== null).length < MIN_ALL_MONTHS) continue;
+    // The same rule as cpi.json: a country that stopped reporting is not offered estimates that end long ago.
+    if (newest - all.length > MAX_LAG_MONTHS) continue;
+    countries[iso2] = entry;
   }
   return { start, countries };
 }
