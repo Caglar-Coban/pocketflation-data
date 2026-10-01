@@ -63,16 +63,22 @@ The pages self-host Barlow and Barlow Condensed (latin and latin-ext woff2 from 
 
 Source: International Monetary Fund, Consumer Price Index (CPI) dataset, https://data.imf.org/. The site and the app name this source with a link.
 
-IMF terms are at https://www.imf.org/en/about/copyright-and-terms (the old `external/terms.htm` redirects there). The IMF site blocked automated fetches (HTTP 403), so this summary was taken from IMF's published terms as surfaced by search, not read on the page directly. Re-read the page before release.
+IMF terms are at https://www.imf.org/en/about/copyright-and-terms ("Copyright and Usage", effective October 11, 2024). The live page refuses automated requests (HTTP 403), so the text below was read on 2026-10-01 from the Internet Archive copy of 2026-06-25 (`web.archive.org/web/20260625061819/…`). Look at the live page once in a browser before release, in case it changed since.
 
-What applies:
+What the section "The Use of IMF Data" says, and how this repo and the app meet it:
 
-- IMF data may be downloaded, extracted and copied, with attribution to the IMF as the source, for example "Source: International Monetary Fund, Consumer Price Index (CPI) dataset, https://data.imf.org/".
-- The data is provided "as is", without warranty of any kind.
-- Free access and reuse of IMF data does not extend to confidential or unpublished data.
-- Content not attributed to the IMF belongs to third parties who must be asked directly.
-- The IMF page says commercial reuse of some IMF material needs permission (copyright@imf.org). Pocketflation has ads and in-app purchases, so confirm on the live terms page that reuse of the CPI dataset in an app is covered, or ask the IMF, before release.
-- Do not imply IMF endorsement. The site and terms state that Pocketflation is not affiliated with the IMF.
+- "You may download, extract, copy, create derivative works, publish, distribute, and use Data obtained from IMF Sites", where Data includes "most statistical data available on www.IMF.org, www.data.IMF.org, or the iData Portal that explicitly identify the International Monetary Fund as the source". The CPI dataset is such data.
+- Attribution: data "must appear accurately with attribution to the IMF as the source, e.g. 'Source: International Monetary Fund, Database Name, <<link to the dataset>>'". The site and the app's Data sources screen name the source with a link.
+- "If the Data is materially transformed by the User, this must be stated explicitly along with the required source citation." The year-over-year rate in `cpi.json` and every estimate the app makes from `cpi-series.json` are calculated by Pocketflation from the IMF's index values; the site and the Data sources screen say so.
+- "Users who make IMF Data available to other Users through any type of distribution or download environment agree to take reasonable efforts to communicate and promote compliance by their users with these terms." These JSON files are public, so the site links to the IMF terms.
+- "If IMF Data is sold by Users as a standalone product, sellers must inform purchasers that the Data is available free of charge from the IMF." Not the case: the official figures are shown in the free version and never sold.
+- The data is provided "as is", without warranty of any kind. Free reuse does not extend to confidential or unpublished data.
+- The general terms forbid use "in a manner that is misleading or implies endorsement by or affiliation with the IMF", and the IMF name and seal are trademarks. The site and terms state that Pocketflation is not affiliated with the IMF; the seal is not used.
+
+Open point, to be settled by e-mail before release:
+
+- The same section ends with "For any potential commercial reuse of IMF Data, please email copyright@imf.org to request permission", although it opens with "Notwithstanding the general prohibition on the commercial use of IMF Content". An app with ads and in-app purchases is commercial, so permission is being asked rather than assumed (draft in the app repo's `docs/launch/launch-checklist.md`, step 1).
+- The general terms also say "The IMF prohibits the bulk download of information by automated technology without explicit permission". This repo calls the IMF's public SDMX API (the interface the IMF provides for programs) once a month, with seven requests. The e-mail mentions it so the answer covers it.
 
 ## app-ads.txt
 
