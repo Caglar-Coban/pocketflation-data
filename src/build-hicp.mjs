@@ -27,7 +27,10 @@ export async function writeHicpFile(generatedAt = new Date().toISOString()) {
   // Compact on purpose: the app downloads this file.
   await writeFile(out, JSON.stringify(doc) + '\n');
   console.log(`Wrote ${out}: ${codes.length} countries, start ${series.start}`);
-  for (const c of ['TR', 'DE', 'GR']) console.log(c, Object.keys(series.countries[c] ?? {}).join(' '), (series.countries[c]?.all ?? []).length);
+  for (const c of ['TR', 'DE', 'GR']) {
+    const entry = series.countries[c] ?? {};
+    console.log(c, Object.keys(entry).filter((k) => k !== 'products').join(' '), (entry.all ?? []).length, `${Object.keys(entry.products ?? {}).length} products`);
+  }
 }
 
 // `node src/build-hicp.mjs` writes this one file alone.

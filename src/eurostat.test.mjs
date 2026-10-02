@@ -101,3 +101,50 @@ test('the all-items index never runs ahead of the category indexes', () => {
   assert.equal(out.countries.DE.transport.length, 13);
   assert.equal(out.countries.TR.all.length, 15);
 });
+
+import { HICP_PRODUCTS } from './eurostat.mjs';
+
+test('product codes are unique ECOICOP codes and include the five division fallbacks', () => {
+  assert.equal(new Set(HICP_PRODUCTS).size, HICP_PRODUCTS.length);
+  for (const code of HICP_PRODUCTS) assert.match(code, /^CP\d{2,5}$/, code);
+  // The categories the IMF-style keys do not cover: clothing, household, leisure, education, eating out.
+  for (const code of ['CP03', 'CP05', 'CP09', 'CP10', 'CP111']) assert.ok(HICP_PRODUCTS.includes(code), code);
+  for (const code of ['CP01141', 'CP01148', 'CP07222', 'CP04110']) assert.ok(HICP_PRODUCTS.includes(code), code);
+  // None of them doubles as one of the seven series.
+  for (const code of Object.values(HICP_SERIES)) assert.equal(HICP_PRODUCTS.includes(code), false, code);
+  for (const code of HICP_PRODUCTS) assert.ok(hicpUrl('2024-01').includes(`coicop18=${code}&`) || hicpUrl('2024-01').includes(`coicop18=${code}`), code);
+});
+
+test('product series go under `products`, month-aligned, and a short one is left out', () => {
+  const months = Array.from({ length: 14 }, (_, i) => `${2024 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`);
+  const rows = [
+    ...months.map((period, i) => ({ geo: 'TR', code: 'TOTAL', period, value: 100 + i })),
+    ...months.map((period, i) => ({ geo: 'TR', code: 'CP01141', period, value: 200 + i + 0.004 })),
+    // Starts two months in: leading months are null.
+    ...months.slice(2).map((period, i) => ({ geo: 'TR', code: 'CP01148', period, value: 300 + i })).slice(0, 13).slice(0, 12),
+    // Twelve values only: cannot carry a 12-month estimate.
+    ...months.slice(0, 12).map((period, i) => ({ geo: 'TR', code: 'CP07222', period, value: 400 + i })),
+    // A country without the all-items index gets nothing at all.
+    ...months.map((period, i) => ({ geo: 'DE', code: 'CP01141', period, value: 500 + i })),
+  ];
+  const out = buildHicp(rows, '2024-01');
+  assert.deepEqual(Object.keys(out.countries), ['TR']);
+  assert.deepEqual(Object.keys(out.countries.TR.products), ['CP01141']);
+  assert.equal(out.countries.TR.products.CP01141.length, 14);
+  assert.equal(out.countries.TR.products.CP01141[0], 200);
+  assert.equal(out.countries.TR.all.length, 14);
+});
+
+test('a product series with gaps keeps its place in time, and a country with no product has no `products`', () => {
+  const months = Array.from({ length: 15 }, (_, i) => `${2024 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`);
+  const rows = [
+    ...months.map((period, i) => ({ geo: 'TR', code: 'TOTAL', period, value: 100 + i })),
+    ...months.filter((_, i) => i !== 0 && i !== 5).map((period) => ({ geo: 'TR', code: 'CP01148', period, value: 300 })),
+    ...months.map((period, i) => ({ geo: 'EL', code: 'TOTAL', period, value: 100 + i })),
+  ];
+  const out = buildHicp(rows, '2024-01');
+  assert.equal(out.countries.TR.products.CP01148[0], null);
+  assert.equal(out.countries.TR.products.CP01148[5], null);
+  assert.equal(out.countries.TR.products.CP01148.length, 15);
+  assert.equal('products' in out.countries.GR, false);
+});

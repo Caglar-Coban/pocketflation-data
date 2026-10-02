@@ -20,6 +20,34 @@ const ENDPOINT = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0
 export const HICP_SERIES = { all: 'TOTAL', food: 'CP01', transport: 'CP07', housing: 'CP04', communication: 'CP08', health: 'CP06', personal: 'CP13' };
 
 /**
+ * Finer indexes, published per country under `products` and keyed by their ECOICOP code. The app
+ * follows one of these for an automatically tracked item when it knows the product (milk follows
+ * the milk index, not all of food), and the five division codes at the end for the categories the
+ * seven series above do not cover. Only codes the app's catalogue refers to are listed: every
+ * code adds about 8 KB to the file.
+ */
+export const HICP_PRODUCTS = [
+  // Food and drink
+  'CP01111', 'CP01112', 'CP01113', 'CP01114', 'CP01115', 'CP01122', 'CP01123', 'CP01125', 'CP01131', 'CP01133',
+  'CP01141', 'CP01145', 'CP01146', 'CP01147', 'CP01148', 'CP01151', 'CP01152', 'CP01153',
+  'CP01161', 'CP01162', 'CP01163', 'CP01164', 'CP01165', 'CP01167', 'CP01168',
+  'CP01171', 'CP01172', 'CP01173', 'CP01174', 'CP01175', 'CP01176', 'CP01179',
+  'CP01181', 'CP01183', 'CP01185', 'CP01186', 'CP01189', 'CP01191', 'CP01192', 'CP01193', 'CP01194',
+  'CP01210', 'CP01220', 'CP01230', 'CP01250', 'CP01260', 'CP02110', 'CP02121', 'CP02130', 'CP02301',
+  // Clothing, housing, household
+  'CP0312', 'CP0321', 'CP04110', 'CP04411', 'CP04441', 'CP04510', 'CP04521', 'CP04522', 'CP05611', 'CP05619',
+  // Health, transport, communication
+  'CP06111', 'CP06131', 'CP06229', 'CP06231',
+  'CP07221', 'CP07222', 'CP07223', 'CP07230', 'CP07241', 'CP07242', 'CP07311', 'CP07321', 'CP07322', 'CP07331', 'CP07340',
+  'CP08120', 'CP08131', 'CP08320', 'CP08330', 'CP08392',
+  // Leisure, eating out, insurance, personal care
+  'CP09211', 'CP09212', 'CP09221', 'CP09322', 'CP09450', 'CP09462', 'CP09610', 'CP09690', 'CP09719', 'CP0972', 'CP09740', 'CP09800',
+  'CP11111', 'CP11112', 'CP11201', 'CP12120', 'CP12130', 'CP12141', 'CP13120', 'CP13131', 'CP13291', 'CP13301',
+  // Division fallbacks: clothing, household, leisure, education, eating out
+  'CP03', 'CP05', 'CP09', 'CP10', 'CP111',
+];
+
+/**
  * The countries asked for, by Eurostat's own code (Greece is EL). Eurostat's reuse policy allows
  * commercial reuse of its data except data of countries that are not EU members, EFTA members or
  * official EU candidates: so the 27 members, Iceland, Norway, Switzerland, and the candidates the
@@ -41,6 +69,7 @@ export function hicpUrl(start = SERIES_START) {
     'unit=I25',
     `sinceTimePeriod=${start}`,
     ...Object.values(HICP_SERIES).map((code) => `coicop18=${code}`),
+    ...HICP_PRODUCTS.map((code) => `coicop18=${code}`),
     ...HICP_COUNTRIES.map((geo) => `geo=${geo}`),
   ];
   return `${ENDPOINT}?${params.join('&')}`;
@@ -108,7 +137,33 @@ export function buildHicp(rows, start = SERIES_START) {
     if (all.filter((v) => v !== null).length < MIN_ALL_MONTHS) delete built.countries[iso2];
     else entry.all = all;
   }
+
+  // Product series, for the countries that made it: aligned to the same start month, gaps as null.
+  const base = monthIndex(start);
+  const wanted = new Set(HICP_PRODUCTS);
+  const sparse = {};
+  for (const { geo, code, period, value } of rows) {
+    const iso2 = toIso2[geo];
+    if (!wanted.has(code) || !iso2 || !built.countries[iso2] || !Number.isFinite(value) || value <= 0) continue;
+    const i = monthIndex(period) - base;
+    if (i < 0) continue;
+    ((sparse[iso2] ??= {})[code] ??= [])[i] = Math.round(value * 100) / 100;
+  }
+  for (const [iso2, byCode] of Object.entries(sparse)) {
+    const products = {};
+    for (const code of HICP_PRODUCTS) {
+      const values = byCode[code] ? Array.from(byCode[code], (v) => v ?? null) : null;
+      // Fewer months than a 12-month estimate needs: the app would ignore it anyway.
+      if (values && values.filter((v) => v !== null).length >= MIN_ALL_MONTHS) products[code] = values;
+    }
+    if (Object.keys(products).length > 0) built.countries[iso2].products = products;
+  }
   return built;
+}
+
+function monthIndex(period) {
+  const [y, m] = period.split('-').map(Number);
+  return y * 12 + (m - 1);
 }
 
 /** Fetches every series of every allowed country in one request. Throws on any failure. */
