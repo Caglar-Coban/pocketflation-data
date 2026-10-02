@@ -1,1 +1,3 @@
 node_modules/
+# Local secrets (the EVDS API key); never committed.
+.env
