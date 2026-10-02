@@ -11,6 +11,9 @@ import { buildSeries, SERIES_START } from './series.mjs';
 /** The same floor as `buildSeries`: fewer months of the all-items index cannot carry a 12-month rate. */
 const MIN_ALL_MONTHS = 13;
 
+/** How many months the total may run ahead of the divisions and still be taken for a flash estimate. The app drops a category index more than 2 months behind. */
+const MAX_FLASH_LEAD = 2;
+
 const ENDPOINT = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr';
 
 /** App series key -> ECOICOP version 2 code. Not the IMF's COICOP 1999: personal care is CP13 here. */
@@ -98,7 +101,8 @@ export function buildHicp(rows, start = SERIES_START) {
   // `all`), so the total is held back to the newest month a category index reaches.
   for (const [iso2, entry] of Object.entries(built.countries)) {
     const reach = Math.max(0, ...Object.entries(entry).filter(([key]) => key !== 'all').map(([, values]) => values.length));
-    if (reach === 0 || entry.all.length <= reach) continue;
+    // Only a short lead is a flash figure. Category indexes further behind have stopped; the app ignores those and follows `all`.
+    if (reach === 0 || entry.all.length <= reach || entry.all.length - reach > MAX_FLASH_LEAD) continue;
     const all = entry.all.slice(0, reach);
     while (all.length > 0 && all[all.length - 1] === null) all.pop();
     if (all.filter((v) => v !== null).length < MIN_ALL_MONTHS) delete built.countries[iso2];
