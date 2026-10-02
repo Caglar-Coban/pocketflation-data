@@ -83,3 +83,21 @@ test('a country with less than 13 months of the all-items index is left out', ()
   const rows = Array.from({ length: 12 }, (_, i) => ({ geo: 'TR', code: 'TOTAL', period: `2024-${String(i + 1).padStart(2, '0')}`, value: 100 + i }));
   assert.deepEqual(buildHicp(rows, '2024-01').countries, {});
 });
+
+test('the all-items index never runs ahead of the category indexes', () => {
+  // Eurostat publishes a flash figure for the total weeks before the divisions. A month only the
+  // total has would be priced by part of an automatic basket, so it is held back until they catch up.
+  const months = Array.from({ length: 15 }, (_, i) => `${2024 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`);
+  const rows = [
+    ...months.map((period, i) => ({ geo: 'DE', code: 'TOTAL', period, value: 100 + i })),
+    ...months.slice(0, 14).map((period, i) => ({ geo: 'DE', code: 'CP01', period, value: 200 + i })),
+    ...months.slice(0, 13).map((period, i) => ({ geo: 'DE', code: 'CP07', period, value: 300 + i })),
+    // A country with the total alone keeps all of it.
+    ...months.map((period, i) => ({ geo: 'TR', code: 'TOTAL', period, value: 400 + i })),
+  ];
+  const out = buildHicp(rows, '2024-01');
+  assert.equal(out.countries.DE.all.length, 14);
+  assert.equal(out.countries.DE.food.length, 14);
+  assert.equal(out.countries.DE.transport.length, 13);
+  assert.equal(out.countries.TR.all.length, 15);
+});

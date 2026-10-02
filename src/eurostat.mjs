@@ -8,6 +8,9 @@
 
 import { buildSeries, SERIES_START } from './series.mjs';
 
+/** The same floor as `buildSeries`: fewer months of the all-items index cannot carry a 12-month rate. */
+const MIN_ALL_MONTHS = 13;
+
 const ENDPOINT = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr';
 
 /** App series key -> ECOICOP version 2 code. Not the IMF's COICOP 1999: personal care is CP13 here. */
@@ -88,7 +91,20 @@ export function buildHicp(rows, start = SERIES_START) {
     (rowsByKey[key] ??= []).push({ iso3: geo, period, value });
   }
   const toIso2 = Object.fromEntries(HICP_COUNTRIES.map((geo) => [geo, GEO_TO_ISO2[geo] ?? geo]));
-  return buildSeries(rowsByKey, toIso2, start);
+  const built = buildSeries(rowsByKey, toIso2, start);
+
+  // Eurostat publishes a flash estimate of the total weeks before the divisions. A month that only
+  // the all-items index has would be priced by part of an automatic basket (the items that follow
+  // `all`), so the total is held back to the newest month a category index reaches.
+  for (const [iso2, entry] of Object.entries(built.countries)) {
+    const reach = Math.max(0, ...Object.entries(entry).filter(([key]) => key !== 'all').map(([, values]) => values.length));
+    if (reach === 0 || entry.all.length <= reach) continue;
+    const all = entry.all.slice(0, reach);
+    while (all.length > 0 && all[all.length - 1] === null) all.pop();
+    if (all.filter((v) => v !== null).length < MIN_ALL_MONTHS) delete built.countries[iso2];
+    else entry.all = all;
+  }
+  return built;
 }
 
 /** Fetches every series of every allowed country in one request. Throws on any failure. */

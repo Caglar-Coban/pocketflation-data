@@ -2,7 +2,8 @@ name: Update CPI data and deploy site
 
 on:
   schedule:
-    - cron: '0 6 3 * *'
+    # Twice a month: early for the national figures, and after Eurostat's full release around the 17th.
+    - cron: '0 6 3,20 * *'
   workflow_dispatch:
 
 permissions:
