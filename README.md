@@ -4,7 +4,7 @@ Public data pipeline and static site for the Pocketflation Android app. The repo
 
 ## What it does
 
-Once a month (and on demand) a GitHub Actions workflow downloads the IMF monthly consumer price index for all countries, computes the latest year-over-year rate per country, writes `site/cpi.json`, downloads the monthly index series by category, writes `site/cpi-series.json`, and deploys `site/` to GitHub Pages. The app downloads both files about once a day and bundles a snapshot of each for offline use.
+Once a month (and on demand) a GitHub Actions workflow downloads the IMF monthly consumer price index for all countries, computes the latest year-over-year rate per country, writes `site/cpi.json`, downloads the monthly index series by category, writes `site/cpi-series.json`, downloads Eurostat's HICP index series, writes `site/hicp-series.json`, and deploys `site/` to GitHub Pages. The app downloads the files it needs about once a day and bundles a snapshot of each for offline use.
 
 Pages URL (once the repo is pushed as `Caglar-Coban/pocketflation-data` with Pages set to "GitHub Actions"):
 
@@ -42,6 +42,28 @@ node src/build.mjs   # fetch from IMF and write site/cpi.json (npm run build)
 Seven monthly index series per country, for the app's automatic tracking: all items (`_T`) and the COICOP divisions CP01 (food), CP07 (transport), CP04 (housing and utilities), CP08 (communication), CP06 (health) and CP12 (miscellaneous). Index `i` of an array is the month `start + i`; a missing month is `null`; trailing nulls are trimmed; values are rounded to 2 decimals. A country needs at least 13 months of the all-items series. The query is the one below with the COICOP code in place of `_T`.
 
 As of 2026-10-01: 175 countries have the all-items series, but only 96 of them carry the category series. The IMF returns rows with an empty `OBS_VALUE` for the national-CPI divisions of the rest (Türkiye, most of the EU, Canada, Japan, India, Brazil, Mexico and others), so those countries are published with `all` alone and the app follows the all-items index for every item there.
+
+## hicp-series.json
+
+The app's second data source: Eurostat's Harmonised Index of Consumer Prices, for the 36 countries Eurostat lets us reuse commercially. Same shape as `cpi-series.json`, and every country carries all seven series.
+
+```json
+{ "version": 1, "generatedAt": "...", "source": { "name": "Eurostat", "dataset": "Harmonised Index of Consumer Prices (HICP), ECOICOP ver. 2", "url": "https://ec.europa.eu/eurostat/databrowser/view/prc_hicp_minr" },
+  "start": "2024-01",
+  "countries": { "TR": { "all": [], "food": [], "transport": [], "housing": [], "communication": [], "health": [], "personal": [] } } }
+```
+
+- Query (verified on 2026-10-02, no key needed): `GET https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?format=JSON&unit=I25&sinceTimePeriod=2024-01&coicop18=TOTAL&coicop18=CP01&…&geo=TR&geo=DE&…`. The answer is JSON-stat; `src/eurostat.mjs` reads it whatever order the dimensions come in.
+- Unit `I25` (2025 = 100). The older dataset `prc_hicp_midx` (2015 = 100) ends in 2025-12 and is not used.
+- The classification is ECOICOP version 2, not the IMF's COICOP 1999: all items is `TOTAL`, and personal care is `CP13` (`CP12` is insurance and finance there). The mapping is `HICP_SERIES`.
+- Eurostat codes Greece `EL`; the file uses `GR`.
+- The app uses this file for a country when the user picks it in Settings, and by default where the IMF carries no category series for that country (Türkiye, most of the EU). The two sources are never mixed inside one country: the base years differ, and a series stitched from both would jump.
+- The 12-month rate shown for this source is calculated in the app from the `all` series.
+- If the request fails, or fewer than 25 countries come back, the previous file stays published and the run shows a warning. `node src/build-hicp.mjs` writes this file alone.
+
+### Eurostat reuse terms
+
+Eurostat's reuse policy (https://ec.europa.eu/eurostat/help/copyright-notice, read on 2026-10-02): reuse is allowed, commercially too, under CC BY 4.0, provided the source is acknowledged and changes are indicated. The exception that matters here: for commercial reuse, data of countries that are not EU members, EFTA members or official EU candidate countries must be left out. So `HICP_COUNTRIES` lists the 27 members, Iceland, Norway, Switzerland, and the candidates the dataset carries (Albania, Georgia, Montenegro, North Macedonia, Serbia, Türkiye). The United States, the United Kingdom and Kosovo are in the dataset and are not requested; a test keeps it so. The site and the app's Data sources screen name Eurostat with a link and say that the rates and estimates are calculated by Pocketflation.
 
 ## IMF query (verified with curl on 2026-09-29)
 
