@@ -1,4 +1,4 @@
-/** App series key -> IMF COICOP_1999 code. */
+/** The app's series keys and their COICOP 1999 codes. The OECD publishes `all` and `food` (see oecd.mjs). */
 export const SERIES = { all: '_T', food: 'CP01', transport: 'CP07', housing: 'CP04', communication: 'CP08', health: 'CP06', personal: 'CP12' };
 
 /** The first month the published series carry. */

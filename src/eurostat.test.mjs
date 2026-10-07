@@ -21,7 +21,7 @@ function jsonStat(order, cells) {
 }
 
 test('HICP_SERIES maps the seven keys to ECOICOP version 2 codes', () => {
-  // Personal care is CP13 here (CP12 in the IMF's COICOP 1999): the two classifications differ.
+  // Personal care is CP13 here (CP12 in COICOP 1999): the two classifications differ.
   assert.deepEqual(HICP_SERIES, { all: 'TOTAL', food: 'CP01', transport: 'CP07', housing: 'CP04', communication: 'CP08', health: 'CP06', personal: 'CP13' });
 });
 
@@ -107,7 +107,7 @@ import { HICP_PRODUCTS } from './eurostat.mjs';
 test('product codes are unique ECOICOP codes and include the five division fallbacks', () => {
   assert.equal(new Set(HICP_PRODUCTS).size, HICP_PRODUCTS.length);
   for (const code of HICP_PRODUCTS) assert.match(code, /^CP\d{2,5}$/, code);
-  // The categories the IMF-style keys do not cover: clothing, household, leisure, education, eating out.
+  // The categories the COICOP 1999 keys do not cover: clothing, household, leisure, education, eating out.
   for (const code of ['CP03', 'CP05', 'CP09', 'CP10', 'CP111']) assert.ok(HICP_PRODUCTS.includes(code), code);
   for (const code of ['CP01141', 'CP01148', 'CP07222', 'CP04110']) assert.ok(HICP_PRODUCTS.includes(code), code);
   // None of them doubles as one of the seven series.

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Public official-inflation data (IMF CPI, Eurostat HICP) and site for the Pocketflation app",
+  "description": "Public official-inflation data (OECD CPI, Eurostat HICP) and site for the Pocketflation app",
   "scripts": {
     "test": "node --test",
     "build": "node src/build.mjs"

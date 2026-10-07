@@ -16,7 +16,7 @@ const MAX_FLASH_LEAD = 2;
 
 const ENDPOINT = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr';
 
-/** App series key -> ECOICOP version 2 code. Not the IMF's COICOP 1999: personal care is CP13 here. */
+/** App series key -> ECOICOP version 2 code. Not COICOP 1999: personal care is CP13 here. */
 export const HICP_SERIES = { all: 'TOTAL', food: 'CP01', transport: 'CP07', housing: 'CP04', communication: 'CP08', health: 'CP06', personal: 'CP13' };
 
 /**
@@ -111,7 +111,7 @@ export function parseJsonStat(json) {
 }
 
 /**
- * Month-aligned series per country, in the shape of cpi-series.json: the same rules as the IMF
+ * Month-aligned series per country, in the shape of cpi-series.json: the same rules as the OECD
  * series (13 months of the all-items index, a country that went quiet is dropped).
  */
 export function buildHicp(rows, start = SERIES_START) {

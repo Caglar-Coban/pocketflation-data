@@ -47,7 +47,7 @@ test('the 18-month boundary is inclusive: 18 behind is kept, 19 behind is exclud
   assert.equal(transform([...at19, ...fresh], map).TR, undefined);
 });
 
-test('IMF-specific codes KOS and WBG map to XK and PS', () => {
+test('the non-ISO codes KOS and WBG map to XK and PS', () => {
   const iso3to2 = JSON.parse(readFileSync(new URL('./iso3to2.json', import.meta.url), 'utf8'));
   const rows = [...series('KOS', '2025-08', Array(13).fill(100)), ...series('WBG', '2025-08', Array(13).fill(100))];
   assert.deepEqual(Object.keys(transform(rows, iso3to2)).sort(), ['PS', 'XK']);

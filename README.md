@@ -4,7 +4,7 @@ Public data pipeline and static site for the Pocketflation Android app. The repo
 
 ## What it does
 
-Once a month (and on demand) a GitHub Actions workflow downloads the IMF monthly consumer price index for all countries, computes the latest year-over-year rate per country, writes `site/cpi.json`, downloads the monthly index series by category, writes `site/cpi-series.json`, downloads Eurostat's HICP index series, writes `site/hicp-series.json`, and deploys `site/` to GitHub Pages. The app downloads the files it needs about once a day and bundles a snapshot of each for offline use.
+Once a month (and on demand) a GitHub Actions workflow downloads the OECD's monthly consumer price index for the countries it publishes, computes the latest year-over-year rate per country, writes `site/cpi.json`, downloads the monthly index series by category, writes `site/cpi-series.json`, downloads Eurostat's HICP index series, writes `site/hicp-series.json`, and deploys `site/` to GitHub Pages. The app downloads the files it needs about once a day and bundles a snapshot of each for offline use.
 
 Pages URL (once the repo is pushed as `Caglar-Coban/pocketflation-data` with Pages set to "GitHub Actions"):
 
@@ -19,29 +19,29 @@ Node 24, no dependencies.
 
 ```bash
 node --test          # unit tests (npm test)
-node src/build.mjs   # fetch from IMF and write site/cpi.json (npm run build)
+node src/build.mjs   # fetch from the OECD and Eurostat and write site/*.json (npm run build)
 ```
 
 ## cpi.json
 
 ```json
-{ "version": 1, "generatedAt": "...", "source": { "name": "IMF", "dataset": "Consumer Price Index (CPI)", "url": "https://data.imf.org/" },
-  "countries": { "TR": { "period": "2026-08", "yoy": 0.3151 } } }
+{ "version": 1, "generatedAt": "...", "source": { "name": "OECD", "dataset": "Consumer price indices (CPIs, HICPs), COICOP 1999", "url": "https://data-explorer.oecd.org/", "licence": "CC BY 4.0" },
+  "countries": { "US": { "period": "2026-08", "yoy": 0.034 } } }
 ```
 
-`yoy` is a fraction rounded to 4 decimals. For each country the latest period `t` that also has `t-12` is used. Countries whose latest usable period is more than 18 months older than the newest period in the dataset are dropped, as are IMF codes that are not ISO 3166 countries (regional aggregates). ISO3 codes from the IMF are mapped to ISO2 by `src/iso3to2.json` (includes the IMF-specific codes `KOS` to `XK` for Kosovo and `WBG` to `PS` for West Bank and Gaza, plus `XKX` to `XK`). `build.mjs` logs any IMF code that is not in the map, so a code change shows up in the Actions log.
+`yoy` is a fraction rounded to 4 decimals. For each country the latest period `t` that also has `t-12` is used. Countries whose latest usable period is more than 18 months older than the newest period in the dataset are dropped, as are codes that are not ISO 3166 countries (aggregates such as `G20`, `OECD`, `EA20`). ISO3 codes are mapped to ISO2 by `src/iso3to2.json`. `build.mjs` logs every code that is not in the map, so a new one shows up in the Actions log.
 
 ## cpi-series.json
 
 ```json
-{ "version": 1, "generatedAt": "...", "source": { "name": "IMF", "dataset": "Consumer Price Index (CPI)", "url": "https://data.imf.org/" },
+{ "version": 1, "generatedAt": "...", "source": { "name": "OECD", ... },
   "start": "2024-01",
-  "countries": { "DE": { "all": [100.1, 103.2, null], "food": [], "transport": [], "housing": [], "communication": [], "health": [], "personal": [] } } }
+  "countries": { "US": { "all": [100.1, 103.2, null], "food": [] } } }
 ```
 
-Seven monthly index series per country, for the app's automatic tracking: all items (`_T`) and the COICOP divisions CP01 (food), CP07 (transport), CP04 (housing and utilities), CP08 (communication), CP06 (health) and CP12 (miscellaneous). Index `i` of an array is the month `start + i`; a missing month is `null`; trailing nulls are trimmed; values are rounded to 2 decimals. A country needs at least 13 months of the all-items series. The query is the one below with the COICOP code in place of `_T`.
+Monthly index series per country, for the app's automatic tracking: all items (`_T`) and food (`CP01`), the two groups the OECD publishes for most of its countries. Index `i` of an array is the month `start + i`; a missing month is `null`; trailing nulls are trimmed; values are rounded to 2 decimals. A country needs at least 13 months of the all-items series. The app follows the all-items index for items of other categories there.
 
-As of 2026-10-01: 175 countries have the all-items series, but only 96 of them carry the category series. The IMF returns rows with an empty `OBS_VALUE` for the national-CPI divisions of the rest (Türkiye, most of the EU, Canada, Japan, India, Brazil, Mexico and others), so those countries are published with `all` alone and the app follows the all-items index for every item there.
+As of 2026-10-07: 40 countries (the OECD members with monthly data, Brazil, China, Colombia, India, Indonesia, Saudi Arabia among the partners). Countries missing from the OECD's monthly data (Japan, Mexico and New Zealand among them) have no official figure in the app.
 
 ## hicp-series.json
 
@@ -55,9 +55,9 @@ The app's second data source: Eurostat's Harmonised Index of Consumer Prices, fo
 
 - Query (verified on 2026-10-02, no key needed): `GET https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?format=JSON&unit=I25&sinceTimePeriod=2024-01&coicop18=TOTAL&coicop18=CP01&…&geo=TR&geo=DE&…`. The answer is JSON-stat; `src/eurostat.mjs` reads it whatever order the dimensions come in.
 - Unit `I25` (2025 = 100). The older dataset `prc_hicp_midx` (2015 = 100) ends in 2025-12 and is not used.
-- The classification is ECOICOP version 2, not the IMF's COICOP 1999: all items is `TOTAL`, and personal care is `CP13` (`CP12` is insurance and finance there). The mapping is `HICP_SERIES`.
+- The classification is ECOICOP version 2, not COICOP 1999: all items is `TOTAL`, and personal care is `CP13` (`CP12` is insurance and finance there). The mapping is `HICP_SERIES`.
 - Eurostat codes Greece `EL`; the file uses `GR`.
-- The app uses this file for a country when the user picks it in Settings, and by default where the IMF carries no category series for that country (Türkiye, most of the EU). The two sources are never mixed inside one country: the base years differ, and a series stitched from both would jump.
+- The app uses this file for a country when the user picks it in Settings, and by default where it has the category series and the OECD file does not (Türkiye, the EU). The two sources are never mixed inside one country: the base years differ, and a series stitched from both would jump.
 - The 12-month rate shown for this source is calculated in the app from the `all` series.
 - If the request fails, or fewer than 25 countries come back, the previous file stays published and the run shows a warning. `node src/build-hicp.mjs` writes this file alone.
 
@@ -65,42 +65,29 @@ The app's second data source: Eurostat's Harmonised Index of Consumer Prices, fo
 
 Eurostat's reuse policy (https://ec.europa.eu/eurostat/help/copyright-notice, read on 2026-10-02): reuse is allowed, commercially too, under CC BY 4.0, provided the source is acknowledged and changes are indicated. The exception that matters here: for commercial reuse, data of countries that are not EU members, EFTA members or official EU candidate countries must be left out. So `HICP_COUNTRIES` lists the 27 members, Iceland, Norway, Switzerland, and the candidates the dataset carries (Albania, Georgia, Montenegro, North Macedonia, Serbia, Türkiye). The United States, the United Kingdom and Kosovo are in the dataset and are not requested; a test keeps it so. The site and the app's Data sources screen name Eurostat with a link and say that the rates and estimates are calculated by Pocketflation.
 
-## IMF query (verified with curl on 2026-09-29)
+## OECD query (verified with curl on 2026-10-07)
 
 ```
-GET https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/CPI/+/*.CPI._T.IX.M?c[TIME_PERIOD]=ge:2023-01
-Accept: application/vnd.sdmx.data+csv;version=2.0.0
+GET https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/.M.N.CPI.IX._T.N.?startPeriod=2023-01&dimensionAtObservation=AllDimensions
+Accept: application/vnd.sdmx.data+csv; charset=utf-8
 ```
 
-- Dataflow `IMF.STA:CPI`, latest version (`+`). Key dimensions: `COUNTRY.INDEX_TYPE.COICOP_1999.TYPE_OF_TRANSFORMATION.FREQUENCY`, so `*.CPI._T.IX.M` is all countries, CPI, all items, index, monthly.
-- Correction to the plan: `startPeriod=` is silently ignored by the SDMX 3.0 endpoint (it returned the full 1900-onward history, about 190k rows). The working time filter is `c[TIME_PERIOD]=ge:YYYY-MM` (brackets URL-encoded by the script). With it, about 7.3k rows are returned.
-- Periods come as `2026-M08`; the script converts them to `2026-08`. One row per country and month, no duplicates.
-- As of 2026-09-29: 191 country/aggregate codes, newest period 2026-M08.
+- Key dimensions: `REF_AREA.FREQ.METHODOLOGY.MEASURE.UNIT_MEASURE.EXPENDITURE.ADJUSTMENT.TRANSFORMATION`: every area, monthly, national methodology, CPI, index, all items, not adjusted. `CP01` in place of `_T` gives food.
+- Periods come as `2026-08`. Values are indexes, 2015 = 100.
+- The API answers 500 or 429 now and then; `src/oecd.mjs` tries up to three more times, 10, 20 and 30 seconds apart. If it still fails, the previous files stay published and the run shows a warning.
 
 ## Fonts
 
 The pages self-host Barlow and Barlow Condensed (latin and latin-ext woff2 from Google Fonts, SIL Open Font License 1.1, text in `site/fonts/OFL.txt`), so visitors do not contact Google. System fonts are the fallback.
 
-## Data source and IMF terms
+## Data sources and their terms
 
-Source: International Monetary Fund, Consumer Price Index (CPI) dataset, https://data.imf.org/. The site and the app name this source with a link.
+- **OECD** (`cpi.json`, `cpi-series.json`): "Consumer price indices (CPIs, HICPs), COICOP 1999", https://data-explorer.oecd.org/. Since July 2024 the OECD publishes its data under CC BY 4.0 ("Open by default" policy): reuse for any purpose, commercial too, with attribution. The site and the app's Data sources screen name the OECD with a link and the licence, and say that the rates and estimates are calculated by Pocketflation and are not OECD figures.
+- **Eurostat** (`hicp-series.json`, `hicp-weights.json`): see "Eurostat reuse terms" above.
 
-IMF terms are at https://www.imf.org/en/about/copyright-and-terms ("Copyright and Usage", effective October 11, 2024). The live page refuses automated requests (HTTP 403), so the text below was read on 2026-10-01 from the Internet Archive copy of 2026-06-25 (`web.archive.org/web/20260625061819/…`). Look at the live page once in a browser before release, in case it changed since.
+### Why not the IMF (decided 2026-10-07)
 
-What the section "The Use of IMF Data" says, and how this repo and the app meet it:
-
-- "You may download, extract, copy, create derivative works, publish, distribute, and use Data obtained from IMF Sites", where Data includes "most statistical data available on www.IMF.org, www.data.IMF.org, or the iData Portal that explicitly identify the International Monetary Fund as the source". The CPI dataset is such data.
-- Attribution: data "must appear accurately with attribution to the IMF as the source, e.g. 'Source: International Monetary Fund, Database Name, <<link to the dataset>>'". The site and the app's Data sources screen name the source with a link.
-- "If the Data is materially transformed by the User, this must be stated explicitly along with the required source citation." The year-over-year rate in `cpi.json` and every estimate the app makes from `cpi-series.json` are calculated by Pocketflation from the IMF's index values; the site and the Data sources screen say so.
-- "Users who make IMF Data available to other Users through any type of distribution or download environment agree to take reasonable efforts to communicate and promote compliance by their users with these terms." These JSON files are public, so the site links to the IMF terms.
-- "If IMF Data is sold by Users as a standalone product, sellers must inform purchasers that the Data is available free of charge from the IMF." Not the case: the official figures are shown in the free version and never sold.
-- The data is provided "as is", without warranty of any kind. Free reuse does not extend to confidential or unpublished data.
-- The general terms forbid use "in a manner that is misleading or implies endorsement by or affiliation with the IMF", and the IMF name and seal are trademarks. The site and terms state that Pocketflation is not affiliated with the IMF; the seal is not used.
-
-Open point, to be settled by e-mail before release:
-
-- The same section ends with "For any potential commercial reuse of IMF Data, please email copyright@imf.org to request permission", although it opens with "Notwithstanding the general prohibition on the commercial use of IMF Content". An app with ads and in-app purchases is commercial, so permission is being asked rather than assumed (draft in the app repo's `docs/launch/launch-checklist.md`, step 1).
-- The general terms also say "The IMF prohibits the bulk download of information by automated technology without explicit permission". This repo calls the IMF's public SDMX API (the interface the IMF provides for programs) once a month, with seven requests. The e-mail mentions it so the answer covers it.
+Until 2026-10-07 `cpi.json` and `cpi-series.json` came from the IMF's CPI dataset. The IMF's terms allow reuse with attribution, but end with "For any potential commercial reuse of IMF Data, please email copyright@imf.org to request permission". The e-mail was sent; the answer pointed to the Copyright Clearance Center (www.copyright.com), i.e. a licence, not a permission. An app with ads and in-app purchases is commercial, so the IMF source was dropped and replaced by the OECD, whose licence needs no permission. The IMF fetcher is in the git history (`src/fetch-imf.mjs`) if a licence is ever obtained. Files published before that date carried IMF data under the attribution terms.
 
 ## app-ads.txt
 
