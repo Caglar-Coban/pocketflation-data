@@ -18,4 +18,5 @@ jobs:
             done
           done
       - name: one country
-        run: curl -s -m 60 -o /dev/null -w "USA only %{http_code}\n" -H "Accept: application/vnd.sdmx.data+csv; charset=utf-8" "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/USA.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+        run: |
+          curl -s -m 60 -o /dev/null -w "USA only %{http_code}\n" -H "Accept: application/vnd.sdmx.data+csv; charset=utf-8" "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/USA.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
