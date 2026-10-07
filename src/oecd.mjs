@@ -10,9 +10,9 @@
 
 const FLOW = 'https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0';
 const ACCEPT = 'application/vnd.sdmx.data+csv; charset=utf-8';
-/** Further tries after a server error, waiting RETRY_MS, then twice that, and so on. */
-const RETRIES = 3;
-const RETRY_MS = 10_000;
+/** Further tries after a server error, waiting RETRY_MS, then twice that, and so on: about 7.5 minutes in all. */
+const RETRIES = 5;
+const RETRY_MS = 30_000;
 
 /** App series key -> OECD expenditure code. The OECD publishes only these two groups for most countries. */
 export const OECD_SERIES = { all: '_T', food: 'CP01' };

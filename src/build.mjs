@@ -15,8 +15,8 @@ await mkdir(new URL('../site/', import.meta.url), { recursive: true });
 
 /** cpi.json and cpi-series.json, from the OECD. Throws on any failure before cpi.json is written. */
 async function writeOecdFiles() {
-  // Every group from SERIES_START in one request: plenty for a 12-month rate. Longer or separate
-  // requests (from 2023, or food alone) answered 500 every time from GitHub's runners (2026-10-07).
+  // Every group from SERIES_START in one request: plenty for a 12-month rate, and one request
+  // instead of two halves the chance of meeting one of the API's passing 500s.
   const byKey = splitBySeries(await fetchOecdRows(SERIES_START));
   const rows = byKey.all;
   const countries = transform(rows, iso3to2);

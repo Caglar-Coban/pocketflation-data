@@ -74,8 +74,7 @@ Accept: application/vnd.sdmx.data+csv; charset=utf-8
 
 - Key dimensions: `REF_AREA.FREQ.METHODOLOGY.MEASURE.UNIT_MEASURE.EXPENDITURE.ADJUSTMENT.TRANSFORMATION`: every area, monthly, national methodology, CPI, index, all items (`_T`) and food (`CP01`) in one answer, not adjusted; the `EXPENDITURE` column tells them apart.
 - Periods come as `2026-08`. Values are indexes, 2015 = 100.
-- Ask from 2024-01, not earlier: from GitHub's runners a request from 2023-01, and a food-only request, answered 500 every time (checked 2026-10-07 with curl and Node), while the one above worked. The same request from a home connection worked.
-- The API answers 500 or 429 now and then; `src/oecd.mjs` tries up to three more times, 10, 20 and 30 seconds apart. If it still fails, the previous files stay published and the run shows a warning.
+- The API answers 500 now and then (seen several times on 2026-10-07, from GitHub's runners and from home alike; the same request worked minutes later). `src/oecd.mjs` tries up to five more times, 30 seconds to 2.5 minutes apart. If it still fails, the previous files stay published, the run shows a warning, and the next run (the 3rd and the 20th) tries again.
 
 ## Fonts
 
