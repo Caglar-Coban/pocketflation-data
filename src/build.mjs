@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { writeHicpFile } from './build-hicp.mjs';
 import { writeWeightsFile } from './build-weights.mjs';
-import { fetchOecdRows, OECD_SERIES } from './oecd.mjs';
+import { fetchOecdRows, splitBySeries } from './oecd.mjs';
 import { buildSeries, SERIES_START } from './series.mjs';
 import { transform } from './transform.mjs';
 
@@ -15,9 +15,10 @@ await mkdir(new URL('../site/', import.meta.url), { recursive: true });
 
 /** cpi.json and cpi-series.json, from the OECD. Throws on any failure before cpi.json is written. */
 async function writeOecdFiles() {
-  // The all-items index from SERIES_START: plenty for a 12-month rate. A longer request (from 2023)
-  // answers 500 every time from GitHub's runners (checked 2026-10-07), while this one works.
-  const rows = await fetchOecdRows('_T', SERIES_START);
+  // Every group from SERIES_START in one request: plenty for a 12-month rate. Longer or separate
+  // requests (from 2023, or food alone) answered 500 every time from GitHub's runners (2026-10-07).
+  const byKey = splitBySeries(await fetchOecdRows(SERIES_START));
+  const rows = byKey.all;
   const countries = transform(rows, iso3to2);
 
   const unmapped = [...new Set(rows.map((r) => r.iso3))].filter((c) => !iso3to2[c]).sort();
@@ -39,14 +40,10 @@ async function writeOecdFiles() {
   console.log(`Wrote ${out}: ${codes.length} countries, newest period ${newest}`);
   for (const c of ['US', 'GB', 'CA']) console.log(c, JSON.stringify(countries[c]));
 
-  // The category series, for automatic tracking. The all-items rows fetched above are reused.
+  // The series by group, for automatic tracking, from the same answer.
   // A failure here must not hold back cpi.json, which is already written.
   try {
-    const rowsByKey = { all: rows };
-    for (const [key, code] of Object.entries(OECD_SERIES)) {
-      if (key !== 'all') rowsByKey[key] = await fetchOecdRows(code, SERIES_START);
-    }
-    const series = buildSeries(rowsByKey, iso3to2);
+    const series = buildSeries(byKey, iso3to2);
     const seriesCodes = Object.keys(series.countries);
     if (seriesCodes.length < MIN_COUNTRIES) throw new Error(`Only ${seriesCodes.length} countries; refusing to write cpi-series.json`);
     const seriesOut = fileURLToPath(new URL('../site/cpi-series.json', import.meta.url));
