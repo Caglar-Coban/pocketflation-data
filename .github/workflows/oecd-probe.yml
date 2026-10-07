@@ -20,3 +20,22 @@ jobs:
       - name: one country
         run: |
           curl -s -m 60 -o /dev/null -w "USA only %{http_code}\n" -H "Accept: application/vnd.sdmx.data+csv; charset=utf-8" "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/USA.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+      - name: node fetch
+        run: |
+          cat > p.mjs <<'JS'
+          const base = 'https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/.M.N.CPI.IX._T.N.?dimensionAtObservation=AllDimensions&startPeriod=';
+          for (const start of ['2023-01', '2024-01']) {
+            for (const ua of [undefined, 'pocketflation-data']) {
+              const out = [];
+              for (let i = 0; i < 3; i++) {
+                const headers = { Accept: 'application/vnd.sdmx.data+csv; charset=utf-8', ...(ua ? { 'User-Agent': ua } : {}) };
+                const r = await fetch(base + start, { headers });
+                const b = await r.text();
+                out.push(`${r.status}/${b.length}`);
+                await new Promise((res) => setTimeout(res, 3000));
+              }
+              console.log(`node start=${start} ua=${ua ?? 'default'}`, out.join(' '));
+            }
+          }
+          JS
+          node p.mjs
