@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-03T11:21:03.874Z",
+  "generatedAt": "2026-10-07T14:52:36.612Z",
   "source": {
     "name": "IMF",
     "dataset": "Consumer Price Index (CPI)",
@@ -204,8 +204,8 @@
       "yoy": 0.0428
     },
     "ET": {
-      "period": "2026-05",
-      "yoy": 0.1384
+      "period": "2026-08",
+      "yoy": 0.1509
     },
     "FI": {
       "period": "2026-08",
@@ -452,8 +452,8 @@
       "yoy": 0.0434
     },
     "MV": {
-      "period": "2026-07",
-      "yoy": 0.0231
+      "period": "2026-08",
+      "yoy": 0.0076
     },
     "MW": {
       "period": "2026-08",
@@ -640,8 +640,8 @@
       "yoy": 0.0568
     },
     "TO": {
-      "period": "2026-03",
-      "yoy": 0.0449
+      "period": "2026-08",
+      "yoy": 0.119
     },
     "TR": {
       "period": "2026-08",
