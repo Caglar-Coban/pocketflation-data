@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { writeHicpFile } from './build-hicp.mjs';
+import { writeWeightsFile } from './build-weights.mjs';
 import { fetchImfRows, fetchIndexRows } from './fetch-imf.mjs';
 import { buildSeries, SERIES, SERIES_START } from './series.mjs';
 import { transform } from './transform.mjs';
@@ -57,4 +58,11 @@ try {
   await writeHicpFile(doc.generatedAt);
 } catch (e) {
   console.warn(`::warning::hicp-series.json was not updated: ${e instanceof Error ? e.message : String(e)}`);
+}
+
+// Eurostat's HICP weights, for "why does my rate differ". Same rule: a failure keeps the previous file.
+try {
+  await writeWeightsFile(doc.generatedAt);
+} catch (e) {
+  console.warn(`::warning::hicp-weights.json was not updated: ${e instanceof Error ? e.message : String(e)}`);
 }
