@@ -68,12 +68,13 @@ Eurostat's reuse policy (https://ec.europa.eu/eurostat/help/copyright-notice, re
 ## OECD query (verified with curl on 2026-10-07)
 
 ```
-GET https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/.M.N.CPI.IX._T.N.?startPeriod=2023-01&dimensionAtObservation=AllDimensions
+GET https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions
 Accept: application/vnd.sdmx.data+csv; charset=utf-8
 ```
 
 - Key dimensions: `REF_AREA.FREQ.METHODOLOGY.MEASURE.UNIT_MEASURE.EXPENDITURE.ADJUSTMENT.TRANSFORMATION`: every area, monthly, national methodology, CPI, index, all items, not adjusted. `CP01` in place of `_T` gives food.
 - Periods come as `2026-08`. Values are indexes, 2015 = 100.
+- Ask from 2024-01, not earlier: from GitHub's runners a request from 2023-01 answered 500 every time (checked 2026-10-07 with curl and Node), while 2024-01 always worked. The same request from a home connection worked.
 - The API answers 500 or 429 now and then; `src/oecd.mjs` tries up to three more times, 10, 20 and 30 seconds apart. If it still fails, the previous files stay published and the run shows a warning.
 
 ## Fonts

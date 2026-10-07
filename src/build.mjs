@@ -15,8 +15,9 @@ await mkdir(new URL('../site/', import.meta.url), { recursive: true });
 
 /** cpi.json and cpi-series.json, from the OECD. Throws on any failure before cpi.json is written. */
 async function writeOecdFiles() {
-  // The OECD's all-items index, three years back: the 12-month rate needs 13 months and more.
-  const rows = await fetchOecdRows('_T', `${new Date().getUTCFullYear() - 3}-01`);
+  // The all-items index from SERIES_START: plenty for a 12-month rate. A longer request (from 2023)
+  // answers 500 every time from GitHub's runners (checked 2026-10-07), while this one works.
+  const rows = await fetchOecdRows('_T', SERIES_START);
   const countries = transform(rows, iso3to2);
 
   const unmapped = [...new Set(rows.map((r) => r.iso3))].filter((c) => !iso3to2[c]).sort();
