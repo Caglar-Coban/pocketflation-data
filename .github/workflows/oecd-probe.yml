@@ -1,0 +1,21 @@
+name: OECD probe (temporary)
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: curl
+        run: |
+          for ua in "pocketflation-data" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"; do
+            for i in 1 2 3; do
+              curl -s -m 60 -o body.txt -w "ua=[$ua] %{http_code} %{size_download}\n" -A "$ua" -H "Accept: application/vnd.sdmx.data+csv; charset=utf-8" "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+              head -c 300 body.txt; echo
+              sleep 5
+            done
+          done
+      - name: one country
+        run: curl -s -m 60 -o /dev/null -w "USA only %{http_code}\n" -H "Accept: application/vnd.sdmx.data+csv; charset=utf-8" "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/USA.M.N.CPI.IX._T.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
