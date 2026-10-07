@@ -1,0 +1,25 @@
+name: OECD probe (temporary)
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: queries
+        run: |
+          B="https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0"
+          A="Accept: application/vnd.sdmx.data+csv; charset=utf-8"
+          for k in "_T" "CP01" "_T+CP01"; do
+            for i in 1 2; do
+              curl -s -m 90 -o b.txt -w "all-countries $k %{http_code} %{size_download} %{time_total}\n" -H "$A" "$B/.M.N.CPI.IX.$k.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+              sleep 3
+            done
+          done
+          head -c 200 b.txt; echo
+          for c in USA GBR CAN TUR BRA; do
+            curl -s -m 90 -o /dev/null -w "one-country $c _T+CP01 %{http_code} %{size_download}\n" -H "$A" "$B/$c.M.N.CPI.IX._T+CP01.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+            sleep 2
+          done
+          curl -s -m 90 -o /dev/null -w "plus-list _T+CP01 %{http_code} %{size_download}\n" -H "$A" "$B/USA+GBR+CAN+TUR+BRA.M.N.CPI.IX._T+CP01.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions"
+          curl -s -m 90 -o /dev/null -w "json _T+CP01 %{http_code} %{size_download}\n" -H "Accept: application/vnd.sdmx.data+json; charset=utf-8; version=1.0" "$B/.M.N.CPI.IX._T+CP01.N.?startPeriod=2024-01"
+          curl -s -m 90 -o /dev/null -w "csv-format-param _T+CP01 %{http_code} %{size_download}\n" "$B/.M.N.CPI.IX._T+CP01.N.?startPeriod=2024-01&dimensionAtObservation=AllDimensions&format=csvfilewithlabels"
